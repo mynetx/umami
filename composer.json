@@ -1,0 +1,47 @@
+{
+    "name": "mynetx/umami",
+    "description": "Add GDPR-compliant Umami analytics and see stats insights on your dashboard",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Mynetx\\Umami\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Mynetx\\Umami\\Tests\\": "tests"
+        }
+    },
+    "require": {
+        "statamic/cms": "^5.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "pixelfear/composer-dist-plugin": true
+        }
+    },
+    "authors": [
+        {
+            "name": "Joachim Rütter"
+        }
+    ],
+    "support": {
+        "email": "me@mynetx.net"
+    },
+    "extra": {
+        "statamic": {
+            "name": "Umami Analytics",
+            "description": "Add GDPR-compliant Umami analytics and see stats insights on your dashboard"
+        },
+        "laravel": {
+            "providers": [
+                "Mynetx\\Umami\\ServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
