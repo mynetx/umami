@@ -1,4 +1,9 @@
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/mynetx/umami.svg?style=flat-square)](https://packagist.org/packages/mynetx/umami)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/mynetx/umami.svg?style=flat-square)](https://packagist.org/packages/mynetx/umami) <a href="https://github.com/mynetx/umami/releases">
+    <img src="https://img.shields.io/github/release/mynetx/umami.svg" alt="GitHub Release" />
+  </a>
+  <a href="https://github.com/mynetx/umami/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/mynetx/umami.svg" alt="MIT License" />
+  </a>
 
 # Umami Analytics for Statamic
 
