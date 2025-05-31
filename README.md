@@ -1,33 +1,38 @@
-# Umami Stats for Statamic
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/mynetx/umami.svg?style=flat-square)](https://packagist.org/packages/mynetx/umami)
 
-A Statamic addon that provides a Control Panel widget displaying analytics from your [Umami](https://umami.is) instance. Monitor your website's key metrics directly in your Statamic dashboard.
+# Umami Analytics for Statamic
 
-## Features
+Bring your Umami analytics right into your Statamic Control Panel. Keep an eye on your website’s key stats without leaving your dashboard.
 
-- Display key Umami analytics in the Statamic Control Panel
-- View page views, unique visitors, average visit duration, and bounce rate
-- Configurable time period (last 24 hours, 7 days, 30 days, or 90 days)
-- Configure via environment variables or through the Control Panel
+## What it does
 
-## Requirements
+- Shows your Umami analytics in the Statamic Control Panel
+- Displays page views, unique visitors, average visit duration, and bounce rate
+- Lets you choose the time range for your stats (coming soon)
+- Configure via environment variables or the Control Panel
+
+## What you need
 
 - Statamic 5.x
 - PHP 8.2 or higher
-- An active Umami instance with API access
+- A running Umami instance with API access
 
-## Installation
+**Note:** Currently, this addon supports self-hosted Umami instances only.  
+Support for Umami Cloud using API keys is planned for a future release. Stay tuned!
 
-You can install this addon via Composer:
+## Get started
+
+Install it with Composer:
 
 ```bash
 composer require mynetx/umami
 ```
 
-## Configuration
+## Set it up
 
-### Environment Variables
+### Environment variables
 
-Add the following variables to your `.env` file:
+Add these to your `.env` file:
 
 ```env
 UMAMI_HOST=https://analytics.example.com
@@ -36,22 +41,20 @@ UMAMI_PASSWORD=your-password
 UMAMI_WEBSITE_ID=your-website-id
 ```
 
-### Environment Variable Details
+### What these do
 
-- `UMAMI_HOST`: The URL of your Umami instance (e.g., https://analytics.example.com)
-- `UMAMI_USERNAME`: Your Umami username
+- `UMAMI_HOST`: Your Umami URL (e.g., https://analytics.example.com)
+- `UMAMI_USERNAME`: Your Umami login name
 - `UMAMI_PASSWORD`: Your Umami password
 - `UMAMI_WEBSITE_ID`: The ID of your website in Umami
 
-You can find your website ID in the Umami dashboard. It's also visible in the URL when you're viewing the website's dashboard (`/websites/[website-id]`).
+You can find your website ID in the Umami dashboard URL when viewing your site’s stats (`/websites/[website-id]`).
 
-## Usage
+## Add the widget
 
-### Adding the Widget to the Control Panel
-
-1. Open your `config/statamic/cp.php` file.
-2. Locate the `widgets` array.
-3. Add `'umami_stats'` to the array, like this:
+1. Open `config/statamic/cp.php`.
+2. Find the `widgets` array.
+3. Add `'umami_stats'` like this:
 
    ```php
    'widgets' => [
@@ -59,15 +62,39 @@ You can find your website ID in the Umami dashboard. It's also visible in the UR
    ],
    ```
 
-## API Usage
+## Track visits on your site
 
-This addon uses the following Umami API endpoints:
+Want to track visits too? Just drop this into your template:
 
-- `/api/auth/login` - For authentication
-- `/api/websites/{websiteId}/stats` - For fetching website statistics
+```antlers
+{{ umami:script }}
+```
 
-For more information about the Umami API, refer to the [official documentation](https://umami.is/docs/api).
+Or use the shorthand:
+
+```antlers
+{{ umami }}
+```
+
+The script only loads if the current environment matches the `enabled_environments` setting (default is `production`).
+
+### Example config
+
+```php
+'enabled_environments' => ['production'],
+```
+
+Set it to `null` to enable on all environments.
+
+## How it works
+
+This addon uses these Umami API endpoints:
+
+- `/api/auth/login` — to log in
+- `/api/websites/{websiteId}/stats` — to get your website stats
+
+Learn more in the [Umami API docs](https://umami.is/docs/api).
 
 ## License
 
-This addon is licensed under the MIT License.
+MIT License.
