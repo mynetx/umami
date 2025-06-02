@@ -1,9 +1,6 @@
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/mynetx/umami.svg?style=flat-square)](https://packagist.org/packages/mynetx/umami) <a href="https://github.com/mynetx/umami/releases">
-    <img src="https://img.shields.io/github/release/mynetx/umami.svg" alt="GitHub Release" />
-  </a>
-  <a href="https://github.com/mynetx/umami/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/mynetx/umami.svg" alt="MIT License" />
-  </a>
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/mynetx/umami?style=flat-square)](https://packagist.org/packages/mynetx/umami)
+[![GitHub Release](https://img.shields.io/github/v/release/mynetx/umami?style=flat-square)](https://github.com/mynetx/umami/releases)
+[![License](https://img.shields.io/github/license/mynetx/umami?style=flat-square)](https://github.com/mynetx/umami/blob/main/LICENSE)
 
 # Umami Analytics for Statamic
 
@@ -59,13 +56,24 @@ You can find your website ID in the Umami dashboard URL when viewing your siteâ€
 
 1. Open `config/statamic/cp.php`.
 2. Find the `widgets` array.
-3. Add `'umami_stats'` like this:
+3. Add a new array item for the Umami widget like this:
 
    ```php
    'widgets' => [
-       'umami_stats',
+       [
+           'type' => 'umami_stats',
+           'title' => 'My Umami Stats',
+           'host' => env('UMAMI_HOST', 'https://analytics.example.com'),
+           'username' => env('UMAMI_USERNAME'),
+           'password' => env('UMAMI_PASSWORD'),
+           'website_id' => env('UMAMI_WEBSITE_ID'),
+           'team_id' => env('UMAMI_TEAM_ID'), // optional
+           'timeframe' => '7d', // options: 24h, 7d, 30d, 90d
+       ],
    ],
    ```
+
+   > You can use `env()` here to keep secrets out of your config files, or set values directly.
 
 ## Track visits on your site
 
