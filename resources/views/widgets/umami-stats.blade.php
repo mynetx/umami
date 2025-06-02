@@ -1,8 +1,8 @@
 <div class="card p-0 content">
     <div class="flex justify-between items-center p-2">
         <h2 class="mt-1 mb-0">
-            @if($host && $websiteId)
-                <a href="{{ $host }}/websites/{{ $websiteId }}" target="_blank" class="flex gap-1 items-baseline hover:text-blue-600 dark:hover:text-blue-400">
+            @if($externalDashboardUrl)
+                <a href="{{ $externalDashboardUrl }}" target="_blank" class="flex gap-1 items-baseline hover:text-blue-600 dark:hover:text-blue-400">
                     <span>{{ $title }}</span>
                     <span class="ml-1 text-xs text-gray-600 dark:text-dark-150">
                         @cp_svg('icons/light/external-link', 'h-4 w-4')

@@ -4,42 +4,27 @@ namespace Mynetx\Umami\Widgets;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Statamic\Widgets\Widget;
 
 class UmamiStatsWidget extends Widget
 {
-    /**
-     * The HTML that should be shown in the widget.
-     *
-     * @return string|View
-     */
     public function html(): string|View
     {
         $token = $this->getAuthToken();
-        $stats = [];
-        $host = $this->normalizeHost($this->config('host', config('umami.host')));
-        $websiteId = $this->config('website_id', config('umami.website_id'));
-
-        if ($token) {
-            $stats = $this->fetchStats($token);
-        }
+        $stats = $token ? $this->fetchStats($token) : [];
 
         return view('mynetx-umami::widgets.umami-stats', [
             'title' => $this->config('title', 'Umami Stats'),
             'stats' => $stats,
-            'error' => empty($token) ? 'Unable to authenticate with Umami' : null,
-            'host' => $host,
-            'websiteId' => $websiteId,
+            'error' => $token ? null : 'Unable to authenticate with Umami',
+            'externalDashboardUrl' => $this->getExternalDashboardUrl(),
         ]);
     }
 
-    /**
-     * Get authentication token from Umami API.
-     *
-     * @return string|null
-     */
-    private function getAuthToken(): ?string
+    protected function getAuthToken(): ?string
     {
         if (session()->has('umami_token')) {
             return session('umami_token');
@@ -54,144 +39,112 @@ class UmamiStatsWidget extends Widget
         }
 
         try {
-            $response = Http::post("{$host}/api/auth/login", [
-                'username' => $username,
-                'password' => $password,
-            ]);
+            $response = Http::post("{$host}/api/auth/login", compact('username', 'password'));
 
             if ($response->successful()) {
-                $responseData = $response->json();
+                $data = $response->json();
 
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    \Log::error('Umami authentication JSON parse error', [
+                    Log::error('Umami authentication JSON parse error', [
                         'error' => json_last_error_msg(),
                         'response' => $response->body(),
                     ]);
                     return null;
                 }
 
-                $token = $responseData['token'] ?? null;
+                $token = $data['token'] ?? null;
 
                 if ($token) {
                     session(['umami_token' => $token]);
                 }
 
                 return $token;
-            } else {
-                \Log::error('Umami authentication failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body(),
-                ]);
             }
-        } catch (\Exception $e) {
-            \Log::error('Umami authentication exception', [
+
+            Log::error('Umami authentication failed', [
+                'status' => $response->status(),
+                'response' => $response->body(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Umami authentication exception', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
         }
 
         return null;
     }
 
-    /**
-     * Normalize the host URL by removing trailing slashes.
-     *
-     * @param string|null $host
-     * @return string|null
-     */
-    private function normalizeHost(?string $host): ?string
-    {
-        if (!$host) {
-            return null;
-        }
-
-        return rtrim($host, '/');
-    }
-
-    /**
-     * Fetch statistics from Umami API.
-     *
-     * @param string $token
-     * @return array
-     */
-    private function fetchStats($token): array
+    protected function fetchStats(string $token): array
     {
         $host = $this->normalizeHost($this->config('host', config('umami.host')));
         $websiteId = $this->config('website_id', config('umami.website_id'));
         $timeframe = $this->config('timeframe', '24h');
 
-        if (!$host || !$websiteId) {
+        if (!$host || !Str::isUuid($websiteId)) {
             return [];
         }
 
-        // Get date range for stats
         $startDate = $this->getStartDate($timeframe);
         $endDate = now()->endOfDay();
-
-        // Convert to timestamps (milliseconds) for stats API
-        $startTimestamp = $startDate->timestamp * 1000;
-        $endTimestamp = $endDate->timestamp * 1000;
+        $params = [
+            'startAt' => $startDate->timestamp * 1000,
+            'endAt' => $endDate->timestamp * 1000,
+            'type' => 'custom',
+        ];
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $token,
-            ])->get("{$host}/api/websites/{$websiteId}/stats", [
-                'startAt' => $startTimestamp,
-                'endAt' => $endTimestamp,
-                'type' => 'custom',
-            ]);
+            $response = Http::withToken($token)->get("{$host}/api/websites/{$websiteId}/stats", $params);
 
             if ($response->successful()) {
                 $data = $response->json();
-
-                // Add date range to the response for display
-                $data['startAt'] = $startDate->format('Y-m-d');
-                $data['endAt'] = $endDate->format('Y-m-d');
-
+                $data['startAt'] = $startDate->toDateString();
+                $data['endAt'] = $endDate->toDateString();
                 return $data;
-            } else {
-                \Log::error('Umami stats request failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body(),
-                ]);
             }
-        } catch (\Exception $e) {
-            \Log::error('Umami stats exception', [
+
+            Log::error('Umami stats request failed', [
+                'status' => $response->status(),
+                'response' => $response->body(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Umami stats exception', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
         }
 
         return [];
     }
 
-    /**
-     * Get start date based on timeframe.
-     *
-     * @param string $timeframe
-     * @return Carbon
-     */
-    private function getStartDate($timeframe): Carbon
+    private function getStartDate(string $timeframe): Carbon
     {
-        $date = now()->startOfDay();
-
-        switch ($timeframe) {
-            case '7d':
-                return $date->subDays(7);
-            case '30d':
-                return $date->subDays(30);
-            case '90d':
-                return $date->subDays(90);
-            default:
-                return $date->subDay();
-        }
+        return match ($timeframe) {
+            '7d' => now()->startOfDay()->subDays(7),
+            '30d' => now()->startOfDay()->subDays(30),
+            '90d' => now()->startOfDay()->subDays(90),
+            default => now()->startOfDay()->subDay(),
+        };
     }
 
-    /**
-     * The parameters that the widget uses.
-     *
-     * @return array
-     */
+    protected function normalizeHost(?string $host): ?string
+    {
+        return $host ? rtrim($host, '/') : null;
+    }
+
+    protected function getExternalDashboardUrl(): ?string
+    {
+        $host = $this->normalizeHost($this->config('host', config('umami.host')));
+        $websiteId = $this->config('website_id', config('umami.website_id'));
+        $teamId = $this->config('team_id', config('umami.team_id'));
+
+        if (!$host || !Str::isUuid($websiteId)) {
+            return null;
+        }
+
+        return $teamId && Str::isUuid($teamId)
+            ? "{$host}/teams/{$teamId}/websites/{$websiteId}"
+            : "{$host}/websites/{$websiteId}";
+    }
+
     public function configFields(): array
     {
         return [
@@ -224,6 +177,12 @@ class UmamiStatsWidget extends Widget
                 'display' => 'Website ID',
                 'default' => config('umami.website_id'),
                 'instructions' => 'The ID of your website in Umami.',
+            ],
+            'team_id' => [
+                'type' => 'text',
+                'display' => 'Team ID',
+                'default' => config('umami.team_id'),
+                'instructions' => 'The team ID if your website belongs to a team in Umami.',
             ],
             'timeframe' => [
                 'type' => 'select',
