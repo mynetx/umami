@@ -4,110 +4,133 @@
 
 # Umami Analytics for Statamic
 
-Bring your Umami analytics right into your Statamic Control Panel. Keep an eye on your website’s key stats without leaving your dashboard.
+This Statamic addon makes it easy to connect your site to a self-hosted [Umami](https://umami.is) instance.
 
-## What it does
+It provides:
 
-- Shows your Umami analytics in the Statamic Control Panel
-- Displays page views, unique visitors, average visit duration, and bounce rate
-- Lets you choose the time range for your stats (coming soon)
-- Configure via environment variables or the Control Panel
+- 🧩 A tag to embed the Umami tracking script on your front-end pages
+- 📊 A Control Panel widget to view your Umami stats right inside Statamic
 
-## What you need
+---
+
+## Features
+
+✅ Add tracking to your Statamic templates with `{{ umami }}`  
+✅ Show Umami stats like visitors, page views, bounce rate, and visit duration  
+✅ Configure via environment variables and the `config/statamic/cp.php` widget array  
+✅ Multi-language support (English, German)  
+🚧 Time range selection coming soon
+
+---
+
+## Requirements
 
 - Statamic 5.x
 - PHP 8.2 or higher
-- A running Umami instance with API access
+- A running, self-hosted Umami instance with API access
 
-**Note:** Currently, this addon supports self-hosted Umami instances only.  
-Support for Umami Cloud using API keys is planned for a future release. Stay tuned!
+> This addon currently works with self-hosted Umami only. Umami Cloud with API keys is not supported yet.
 
-## Get started
+---
 
-Install it with Composer:
+## Installation
+
+Install via Composer:
 
 ```bash
 composer require mynetx/umami
 ```
 
-## Set it up
+---
 
-### Environment variables
+## Configuration
+
+### Environment Variables
 
 Add these to your `.env` file:
 
-```env
+```dotenv
 UMAMI_HOST=https://analytics.example.com
 UMAMI_USERNAME=your-username
 UMAMI_PASSWORD=your-password
 UMAMI_WEBSITE_ID=your-website-id
+UMAMI_TEAM_ID=your-team-id
 ```
 
-### What these do
+| Variable           | Description                     | Example                      |
+|--------------------|---------------------------------|------------------------------|
+| `UMAMI_HOST`       | Your Umami base URL             | https://analytics.example.com |
+| `UMAMI_USERNAME`   | Umami login username            | admin                        |
+| `UMAMI_PASSWORD`   | Umami password                  | secure_password              |
+| `UMAMI_WEBSITE_ID` | Website ID from your Umami site | abc123                       |
+| `UMAMI_TEAM_ID`    | Team ID (if applicable)         | abc123                       |
 
-- `UMAMI_HOST`: Your Umami URL (e.g., https://analytics.example.com)
-- `UMAMI_USERNAME`: Your Umami login name
-- `UMAMI_PASSWORD`: Your Umami password
-- `UMAMI_WEBSITE_ID`: The ID of your website in Umami
+Find your website and team IDs in the URL when viewing your Umami dashboard.
 
-You can find your website ID in the Umami dashboard URL when viewing your site’s stats (`/websites/[website-id]`).
+---
 
-## Add the widget
+### Widget Setup
 
-1. Open `config/statamic/cp.php`.
-2. Find the `widgets` array.
-3. Add a new array item for the Umami widget like this:
+To display stats in the Control Panel dashboard:
 
-   ```php
-   'widgets' => [
-       [
-           'type' => 'umami_stats',
-           'title' => 'My Umami Stats',
-           'host' => env('UMAMI_HOST', 'https://analytics.example.com'),
-           'username' => env('UMAMI_USERNAME'),
-           'password' => env('UMAMI_PASSWORD'),
-           'website_id' => env('UMAMI_WEBSITE_ID'),
-           'team_id' => env('UMAMI_TEAM_ID'), // optional
-           'timeframe' => '7d', // options: 24h, 7d, 30d, 90d
-       ],
-   ],
-   ```
+1. Open `config/statamic/cp.php`
+2. Locate the `widgets` array
+3. Add an entry for the Umami widget:
 
-   > You can use `env()` here to keep secrets out of your config files, or set values directly.
-
-## Track visits on your site
-
-Want to track visits too? Just drop this into your template:
-
-```antlers
-{{ umami:script }}
+```php
+'widgets' => [
+    [
+        'type' => 'umami_stats',
+        'title' => 'My Umami Stats',
+        'host' => env('UMAMI_HOST'),
+        'username' => env('UMAMI_USERNAME'),
+        'password' => env('UMAMI_PASSWORD'),
+        'website_id' => env('UMAMI_WEBSITE_ID'),
+        'team_id' => env('UMAMI_TEAM_ID'),
+        'timeframe' => '7d', // 24h, 7d, 30d, or 90d
+    ],
+],
 ```
 
-Or use the shorthand:
+💡 You can hardcode values or pull them from environment variables.
+
+---
+
+### Tracking Setup
+
+To embed the Umami tracking script in your site, add this to your Antlers layout or template:
 
 ```antlers
 {{ umami }}
 ```
 
-The script only loads if the current environment matches the `enabled_environments` setting (default is `production`).
+or explicitly:
 
-### Example config
+```antlers
+{{ umami:script }}
+```
+
+The script is only included when the current environment matches the `enabled_environments` config setting:
 
 ```php
 'enabled_environments' => ['production'],
 ```
 
-Set it to `null` to enable on all environments.
+Set it to `null` to allow output on all environments.
 
-## How it works
+---
 
-This addon uses these Umami API endpoints:
+## How It Works
 
-- `/api/auth/login` — to log in
-- `/api/websites/{websiteId}/stats` — to get your website stats
+This addon connects to your Umami instance via these API endpoints:
 
-Learn more in the [Umami API docs](https://umami.is/docs/api).
+- `POST /api/auth/login` — Authenticate and retrieve an access token
+- `GET /api/websites/{websiteId}/stats` — Fetch your website’s analytics
+
+Refer to the [Umami API documentation](https://umami.is/docs/api) for more details.
+
+---
 
 ## License
 
-MIT License.
+MIT License
