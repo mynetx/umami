@@ -25,8 +25,8 @@ It provides:
 
 ## Requirements
 
-- Statamic 5.x
-- PHP 8.2 or higher
+- Statamic 5.x or 6.x
+- PHP 8.2 or higher (8.3+ required for Statamic 6)
 - A running, self-hosted Umami instance with API access
 
 > This addon currently works with self-hosted Umami only. Umami Cloud with API keys is not supported yet.
